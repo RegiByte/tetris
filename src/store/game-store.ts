@@ -3,6 +3,7 @@ import { TetrominoState } from '../types/tetromino'
 import { GameState, GameBoard } from '../types/game'
 import { BOARD_WIDTH, BOARD_HEIGHT } from '../constants/game'
 import { TETROMINOES } from '../constants/tetrominos'
+import { usePieceStore } from './piece-store'
 
 function createEmptyBoard(): GameBoard {
   const cells = Array(BOARD_HEIGHT).fill(null).map(() =>
@@ -27,6 +28,8 @@ function createEmptyRow() {
 }
 
 interface GameStore extends GameState {
+  // State
+  hasStarted: boolean
   // Actions
   placePiece: (piece: TetrominoState) => void
   canPlacePiece: (piece: TetrominoState) => boolean
@@ -34,6 +37,7 @@ interface GameStore extends GameState {
   togglePause: () => void
   setGameOver: () => void
   resetGame: () => void
+  startGame: () => void
 }
 
 export const useGameStore = create<GameStore>((set, get) => ({
@@ -43,8 +47,17 @@ export const useGameStore = create<GameStore>((set, get) => ({
   level: 1,
   isGameOver: false,
   isPaused: false,
+  hasStarted: false,
 
   // Actions
+  startGame: () => {
+    set({
+      hasStarted: true,
+      isPaused: false,
+      isGameOver: false
+    })
+  },
+
   placePiece: (piece: TetrominoState) => {
     const tetromino = TETROMINOES[piece.type]
     const shape = tetromino.shapes[piece.rotation / 90]
@@ -161,12 +174,14 @@ export const useGameStore = create<GameStore>((set, get) => ({
   },
 
   resetGame: () => {
+    usePieceStore.getState().resetPieceGenerator()
     set({
       board: createEmptyBoard(),
       score: 0,
       level: 1,
       isGameOver: false,
-      isPaused: false
+      isPaused: false,
+      hasStarted: true
     })
   }
 })) 
